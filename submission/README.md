@@ -8,7 +8,7 @@
 
 | | |
 |--|--|
-| Canlı konsol | http://127.0.0.1:8787 (`bash scripts/run_dashboard.sh`) |
+| Canlı konsol | `bash scripts/run_dashboard.sh` · SS: [`xlogic-console.png`](./xlogic-console.png) |
 | Agent | `python -m agent.main --decision auto` (Anthropic) veya `--decision rules` |
 | Log | `logs/agent_live.log`, `logs/decisions.jsonl` |
 | Performans | [`performance.md`](./performance.md) · [`performance.json`](./performance.json) |
