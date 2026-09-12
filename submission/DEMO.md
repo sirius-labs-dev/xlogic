@@ -1,14 +1,8 @@
-# Demo / GIF notu
+# Demo video
 
-Jüri için kısa kayıt (QuickTime / Kap / LICEcap, ~15–20 sn):
+Canlı konsol kaydı: [`xlogic-demo.mp4`](./xlogic-demo.mp4)
 
-1. XLogic konsol: http://127.0.0.1:8787  
-2. Pipeline OBSERVE→DECIDE→GATE→ORDER + LIVE chip  
-3. Fills panelinde ETH `agt…` fill  
-4. (Opsiyonel) terminal: `tail -f logs/agent_live.log`
-
-Dosyayı buraya koy: `submission/xlogic-demo.gif` (veya `.mp4`)
-
-Hazır screenshot: `submission/xlogic-console.png`
+- Kaynak: http://127.0.0.1:8787/ (LIVE dashboard)
+- İçerik: scroll tour — pipeline, gate, fills, live log
 
 Yenile performans: `bash scripts/dump_submission.sh`

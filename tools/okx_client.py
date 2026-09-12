@@ -3,11 +3,35 @@
 from __future__ import annotations
 
 import json
+import os
+import shutil
 import subprocess
+from pathlib import Path
 from typing import Any
 
-OKX_BIN = "/opt/homebrew/bin/okx"
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+
 TIMEOUT_SEC = 15
+
+
+def resolve_okx_bin() -> str:
+    """Prefer OKX_BIN env, then PATH, then common install locations."""
+    env = (os.getenv("OKX_BIN") or "").strip()
+    if env:
+        return env
+    found = shutil.which("okx")
+    if found:
+        return found
+    for candidate in ("/opt/homebrew/bin/okx", "/usr/local/bin/okx"):
+        if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
+            return candidate
+    return "okx"
+
+
+# Back-compat for imports / dashboard display
+OKX_BIN = resolve_okx_bin()
 
 
 def _clean_stderr(stderr: str) -> str:
@@ -27,7 +51,8 @@ def _clean_stderr(stderr: str) -> str:
 
 def _run(args: list[str]) -> dict[str, Any]:
     """Run `okx --json ...` and return {ok, data} or {ok, error}."""
-    cmd = [OKX_BIN, "--json", *args]
+    bin_path = resolve_okx_bin()
+    cmd = [bin_path, "--json", *args]
     try:
         proc = subprocess.run(
             cmd,
@@ -38,7 +63,7 @@ def _run(args: list[str]) -> dict[str, Any]:
     except subprocess.TimeoutExpired:
         return {"ok": False, "error": f"timeout after {TIMEOUT_SEC}s: {' '.join(cmd)}"}
     except FileNotFoundError:
-        return {"ok": False, "error": f"okx binary not found: {OKX_BIN}"}
+        return {"ok": False, "error": f"okx binary not found: {bin_path}"}
     except Exception as exc:  # noqa: BLE001 — never raise to callers
         return {"ok": False, "error": str(exc)}
 

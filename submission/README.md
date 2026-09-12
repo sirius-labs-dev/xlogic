@@ -12,7 +12,6 @@
 | Agent | `python -m agent.main --decision auto` (Anthropic) veya `--decision rules` |
 | Log | `logs/agent_live.log`, `logs/decisions.jsonl` |
 | Performans | [`performance.md`](./performance.md) · [`performance.json`](./performance.json) |
-| Sunum | [`xlogic-pitch.html`](./xlogic-pitch.html) — ←→ / space · N notes · F fullscreen |
 | GIF notu | [`DEMO.md`](./DEMO.md) → `xlogic-demo.gif` |
 
 Yenile: `python -m tools.metrics`

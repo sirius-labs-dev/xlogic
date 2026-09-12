@@ -4,7 +4,7 @@
 
 Fail-closed otonom spot ajanı: her emir **risk kapısından** geçmeden borsaya gitmez; stop borsada ilişik; LLM susunca rules ile döngü sürer.
 
-> Teslim: [`submission/`](./submission/) · Pitch: [`submission/xlogic-pitch.html`](./submission/xlogic-pitch.html) · Metrik: [`submission/performance.md`](./submission/performance.md) · Konsol SS: [`submission/xlogic-console.png`](./submission/xlogic-console.png)
+> Teslim: [`submission/`](./submission/) · Metrik: [`submission/performance.md`](./submission/performance.md) · Konsol SS: [`submission/xlogic-console.png`](./submission/xlogic-console.png)
 
 ## Jüri özeti (30 sn)
 
@@ -58,18 +58,38 @@ OBSERVE (okx CLI --json)
 - Kill-switch `logs/state.json` üzerinde kalıcı
 - Cutoff 19:15 yeni alım yok · hard stop 19:20
 
-## Çalıştırma
+## Kurulum (konsol — herkes için)
 
 ```bash
-cd ~/trading-agent
-# .env: ANTHROPIC_API_KEY=...
-.venv/bin/python -m agent.main --decision auto
-bash scripts/run_dashboard.sh          # local console
-.venv/bin/python -m tools.metrics      # submission dump
-.venv/bin/python -m pytest -q          # 40 passed
+git clone https://github.com/sirius-labs-dev/xlogic.git
+cd xlogic
+bash scripts/setup.sh
 ```
 
-OKX: `okx` CLI 1.4.6, `site=tr`, spot only.
+`setup.sh` şunları yapar: `.venv` + `requirements.txt`, `.env` şablonu, `okx` CLI kontrolü.
+
+1. **OKX CLI** kurulu olsun (`okx` PATH’te veya `OKX_BIN=...`).
+2. Profil: `okx auth` → OKX TR için `site=tr`, spot yetkili API key.
+3. LLM (opsiyonel): `.env` içine `ANTHROPIC_API_KEY=...`  
+   Anahtar yoksa: `--decision rules` (LLM’siz fail-closed).
+
+```bash
+source .venv/bin/activate
+
+# Güvenli duman testi (emir yok)
+python -m agent.main --decision rules --dry-run
+
+# Canlı ajan (gerçek emir — risk_gate zorunlu)
+python -m agent.main --decision auto
+
+# Live console
+bash scripts/run_dashboard.sh          # http://127.0.0.1:8787
+
+python -m tools.metrics                # submission dump
+pytest -q                              # 40 passed
+```
+
+OKX: CLI ≥1.4.x, `site=tr`, spot only. İmza yok — tüm çağrılar `okx --json`.
 
 ## Güvenlik
 

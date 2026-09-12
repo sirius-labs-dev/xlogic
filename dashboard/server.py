@@ -20,12 +20,16 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 import config  # noqa: E402
+from tools.okx_client import resolve_okx_bin  # noqa: E402
 
 STATIC = Path(__file__).resolve().parent / "static"
 LOGS = ROOT / "logs"
-OKX_BIN = "/opt/homebrew/bin/okx"
 HOST = "127.0.0.1"
 PORT = 8787
+
+
+def _okx_bin() -> str:
+    return resolve_okx_bin()
 
 _CYCLE_RE = re.compile(r"\[#(\d+)\s+(\d{2}:\d{2}:\d{2})\]")
 _QUOTE = str(getattr(config, "QUOTE_CCY", "USDT"))
@@ -300,7 +304,7 @@ def _risk_limits(state: dict[str, Any], equity: float | None) -> dict[str, Any]:
 def _okx_balance() -> dict[str, Any] | None:
     try:
         proc = subprocess.run(
-            [OKX_BIN, "--json", "account", "balance"],
+            [_okx_bin(), "--json", "account", "balance"],
             capture_output=True,
             text=True,
             timeout=12,
