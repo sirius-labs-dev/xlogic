@@ -4,7 +4,7 @@
 
 Fail-closed otonom spot ajanı: gözlem → sinyal → LLM/rules → **risk kapısı** → OKX CLI emir → journal.
 
-> Teslim paketi: [`submission/`](./submission/) · Canlı UX: http://127.0.0.1:8787
+> Teslim paketi: [`submission/`](./submission/)
 
 ## Durum (canlı)
 
@@ -20,7 +20,7 @@ cd ~/trading-agent
 # .env: ANTHROPIC_API_KEY=sk-ant-...
 .venv/bin/python -m agent.main --decision auto          # canlı loop
 .venv/bin/python -m agent.main --once --decision rules  # tek cycle
-bash scripts/run_dashboard.sh                           # UX :8787
+bash scripts/run_dashboard.sh                           # local console
 .venv/bin/python -m tools.metrics                       # submission dump
 .venv/bin/python -m pytest -q
 ```
