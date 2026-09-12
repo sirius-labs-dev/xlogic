@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>XLogic — Agentic Trading Hackathon</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #000000;
+      --panel: #1a1a1a;
+      --line: #2a2a2a;
+      --ink: #fafafa;
+      --muted: #848e9c;
+      --soft: #d9d9d9;
+      --up: #25a750;
+      --down: #ca3f64;
+      --warn: #f0b429;
+      --font: "Plus Jakarta Sans", -apple-system, system-ui, sans-serif;
+      --mono: "IBM Plex Mono", ui-monospace, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font);
+      -webkit-font-smoothing: antialiased;
+      overflow: hidden;
+    }
+    .deck { height: 100%; position: relative; }
+    .slide {
+      display: none;
+      height: 100%;
+      padding: clamp(32px, 6vh, 72px) clamp(36px, 7vw, 96px);
+      flex-direction: column;
+      justify-content: center;
+      gap: 28px;
+    }
+    .slide.active { display: flex; }
+    .kicker {
+      color: var(--muted);
+      font-size: clamp(14px, 1.6vw, 18px);
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    h1 {
+      font-size: clamp(48px, 8vw, 96px);
+      font-weight: 800;
+      letter-spacing: -0.05em;
+      line-height: 0.95;
+    }
+    h2 {
+      font-size: clamp(32px, 4.5vw, 56px);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.05;
+      max-width: 18ch;
+    }
+    .lead {
+      font-size: clamp(18px, 2.2vw, 28px);
+      color: var(--soft);
+      line-height: 1.45;
+      max-width: 36ch;
+      font-weight: 500;
+    }
+    .muted { color: var(--muted); }
+    .row { display: flex; gap: 16px; flex-wrap: wrap; align-items: stretch; }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 20px 22px;
+      min-width: 160px;
+      flex: 1;
+    }
+    .card .lab {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .card .val {
+      font-size: clamp(22px, 2.4vw, 32px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+    .card .sub {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    .pipe {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      width: 100%;
+      max-width: 1100px;
+    }
+    @media (max-width: 900px) {
+      .pipe { grid-template-columns: 1fr 1fr; }
+    }
+    .stage {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+      border-left: 3px solid var(--up);
+    }
+    .stage.halt { border-left-color: var(--down); }
+    .stage .n {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .stage .t { font-weight: 800; font-size: 18px; margin-bottom: 6px; }
+    .stage .d { color: var(--muted); font-size: 14px; line-height: 1.35; }
+    ul.bullets {
+      list-style: none;
+      display: grid;
+      gap: 14px;
+      max-width: 720px;
+    }
+    ul.bullets li {
+      font-size: clamp(18px, 2vw, 24px);
+      font-weight: 600;
+      line-height: 1.35;
+      padding-left: 22px;
+      position: relative;
+    }
+    ul.bullets li::before {
+      content: "";
+      position: absolute;
+      left: 0; top: 0.55em;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--up);
+    }
+    ul.bullets li.warn::before { background: var(--warn); }
+    ul.bullets li.halt::before { background: var(--down); }
+    .mono { font-family: var(--mono); font-size: 0.92em; }
+    .footer-bar {
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 28px;
+      border-top: 1px solid var(--line);
+      background: rgba(0,0,0,.85);
+      backdrop-filter: blur(10px);
+      font-size: 13px;
+      color: var(--muted);
+      z-index: 5;
+    }
+    .progress {
+      position: fixed;
+      top: 0; left: 0; height: 3px;
+      background: var(--up);
+      z-index: 6;
+      transition: width .25s ease;
+    }
+    .tag {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 100px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--soft);
+    }
+    .tag.live { color: var(--up); border-color: color-mix(in srgb, var(--up) 40%, var(--line)); }
+    .big-quote {
+      font-size: clamp(28px, 3.6vw, 44px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      max-width: 18ch;
+    }
+    .accent { color: var(--up); }
+    .danger { color: var(--down); }
+    .notes {
+      display: none;
+      position: fixed;
+      right: 16px; bottom: 56px;
+      max-width: 320px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+      z-index: 7;
+    }
+    .notes.on { display: block; }
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      width: 100%;
+      max-width: 1000px;
+    }
+    @media (max-width: 800px) {
+      .grid2 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="progress" id="progress"></div>
+  <div class="deck" id="deck">
+
+    <!-- 1 -->
+    <section class="slide active" data-notes="60 sn asansör. Markayı söyle, tek cümle değer, canlı olduğumuzu ima et.">
+      <div class="kicker">Komünite × OKX TR · Agentic Trading Hackathon</div>
+      <h1>XLogic</h1>
+      <p class="lead">Fail-closed otonom spot ajan — her emir risk kapısından geçer.</p>
+      <div class="row">
+        <span class="tag live">LIVE · OKX TR spot</span>
+        <span class="tag">ATK CLI + MCP</span>
+        <span class="tag">BTC / ETH</span>
+      </div>
+    </section>
+
+    <!-- 2 -->
+    <section class="slide" data-notes="Problem: agentic trading’de karar serbest, icra kontrolsüz kalıyor.">
+      <div class="kicker">Problem</div>
+      <h2>AI “al” dediğinde kim fren basıyor?</h2>
+      <ul class="bullets">
+        <li>LLM’ler agresif önerir; borsa kayıtsız kabul eder</li>
+        <li class="warn">Chat bot ≠ ölçülmüş otonomi</li>
+        <li class="halt">Stop yoksa, boyut yoksa, limit yoksa — ajan değil kumar</li>
+      </ul>
+    </section>
+
+    <!-- 3 -->
+    <section class="slide" data-notes="Çözüm tek cümle: karar serbest, icra kapılı.">
+      <div class="kicker">Çözüm</div>
+      <p class="big-quote">Karar <span class="accent">özgür</span>. İcra <span class="danger">kapılı</span>.</p>
+      <p class="lead">XLogic sinyal üretir, LLM veya rules karar verir — ama borsaya sadece <span class="mono">risk_gate</span> izin verirse çıkar.</p>
+    </section>
+
+    <!-- 4 -->
+    <section class="slide" data-notes="Pipeline’ı parmakla say. Gate’i vurgula.">
+      <div class="kicker">Mimari</div>
+      <h2>Observe → Decide → Gate → Order</h2>
+      <div class="pipe">
+        <div class="stage"><div class="n">01</div><div class="t">OBSERVE</div><div class="d">okx --json · ticker / candles / balance</div></div>
+        <div class="stage"><div class="n">02</div><div class="t">SIGNALS</div><div class="d">EMA20/50 · ATR14 · entry/exit</div></div>
+        <div class="stage"><div class="n">03</div><div class="t">DECIDE</div><div class="d">LLM auto · rules fail-closed</div></div>
+        <div class="stage halt"><div class="n">04</div><div class="t">GATE</div><div class="d">Boyut + 13 red kodu burada</div></div>
+        <div class="stage"><div class="n">05</div><div class="t">ORDER</div><div class="d">Limit + ilişik SL/TP · journal</div></div>
+      </div>
+    </section>
+
+    <!-- 5 -->
+    <section class="slide" data-notes="Somut limitler. GATED bugün kanıt.">
+      <div class="kicker">Risk kapısı</div>
+      <h2>Emir buradan geçmeden gitmez</h2>
+      <div class="row">
+        <div class="card"><div class="lab">Risk / trade</div><div class="val">0.5%</div><div class="sub">(entry − stop) × size</div></div>
+        <div class="card"><div class="lab">Max position</div><div class="val">30%</div><div class="sub">tek çift</div></div>
+        <div class="card"><div class="lab">Exposure</div><div class="val">60%</div><div class="sub">toplam coin</div></div>
+        <div class="card"><div class="lab">Daily kill</div><div class="val">2%</div><div class="sub">kalıcı kill-switch</div></div>
+      </div>
+      <p class="muted" style="font-size:18px">+ spread 10 bps · 6 emir/saat · cutoff 19:15 · stop zorunlu</p>
+    </section>
+
+    <!-- 6 -->
+    <section class="slide" data-notes="Fail-closed = güvenilirlik puanı. Panelde FALLBACK kartını göster.">
+      <div class="kicker">Fail-closed</div>
+      <h2>LLM çökerse “yine de bas” yok</h2>
+      <ul class="bullets">
+        <li>401 / timeout / bad schema → <span class="mono">rules_fallback</span> veya HOLD</li>
+        <li>Gate red → emir gönderilmez (<span class="danger">GATED</span>)</li>
+        <li>40/40 pytest · risk_gate + llm + signals</li>
+      </ul>
+    </section>
+
+    <!-- 7 -->
+    <section class="slide" data-notes="Gerçek sayılar. PnL düz — hikâye güvenlik. Fill + gated sayısını söyle.">
+      <div class="kicker">Canlı kanıt · 12 Eyl 2026</div>
+      <h2>Ölçülmüş davranış</h2>
+      <div class="row">
+        <div class="card"><div class="lab">Fills</div><div class="val">3</div><div class="sub mono">BUY → SELL exit → BUY #2</div></div>
+        <div class="card"><div class="lab">Cycles</div><div class="val">198+</div><div class="sub">LIVE · gate + fail-closed</div></div>
+        <div class="card"><div class="lab">Exit</div><div class="val">SELL</div><div class="sub mono">@ 2544.6 · agt…oth1</div></div>
+        <div class="card"><div class="lab">Re-entry</div><div class="val">BUY #2</div><div class="sub mono">@ ~2544 · SL/TP on</div></div>
+      </div>
+    </section>
+
+    <!-- 8 -->
+    <section class="slide" data-notes="Burada tarayıcıya geç: 8787. FILL → GATED → Fail-closed.">
+      <div class="kicker">Demo</div>
+      <h2>Konsolda 30 saniye</h2>
+      <div class="grid2">
+        <div class="card">
+          <div class="lab">Göster</div>
+          <div class="sub" style="font-size:18px;color:var(--ink);line-height:1.5">
+            1. FILL kartı<br/>
+            2. Senaryo rozeti <span class="danger">GATED</span><br/>
+            3. Fail-closed sayacı<br/>
+            4. Risk limitleri
+          </div>
+        </div>
+        <div class="card">
+          <div class="lab">URL</div>
+          <div class="val mono" style="font-size:22px">127.0.0.1:8787</div>
+          <div class="sub">OKX TR brand console · XLogic</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 9 -->
+    <section class="slide" data-notes="MCP %20 skor — CLI + MCP Connected 50 tools. Sayfa CLI’yi birinci sınıf tutuyor.">
+      <div class="kicker">ATK</div>
+      <h2>Agent Trade Kit döngüde</h2>
+      <ul class="bullets">
+        <li>Tüm OKX çağrıları <span class="mono">okx --json</span> — imza yok</li>
+        <li>Cursor MCP: <span class="mono">okx-trade</span> · 50 tools · site=tr</li>
+        <li>Skills: market · account · spot — karar döngüsüne bağlı</li>
+      </ul>
+    </section>
+
+    <!-- 10 -->
+    <section class="slide" data-notes="Kapanış. Tekrar one-liner. Teşekkür + soru.">
+      <div class="kicker">XLogic</div>
+      <p class="big-quote">Ölçülmüş otonomi.<br/><span class="accent">Güvenli icra.</span></p>
+      <p class="lead">Soru almaya hazırız — risk kapısı, slippage, MCP.</p>
+      <div class="row">
+        <span class="tag live">http://127.0.0.1:8787</span>
+        <span class="tag">submission/</span>
+      </div>
+    </section>
+  </div>
+
+  <div class="notes" id="notes"></div>
+  <div class="footer-bar">
+    <span>XLogic · ← → veya space · N = speaker notes · F = fullscreen</span>
+    <span id="counter">1 / 10</span>
+  </div>
+
+  <script>
+    const slides = [...document.querySelectorAll(".slide")];
+    const progress = document.getElementById("progress");
+    const counter = document.getElementById("counter");
+    const notes = document.getElementById("notes");
+    let i = 0;
+    let notesOn = false;
+
+    function show(n) {
+      i = Math.max(0, Math.min(slides.length - 1, n));
+      slides.forEach((s, idx) => s.classList.toggle("active", idx === i));
+      progress.style.width = ((i + 1) / slides.length * 100) + "%";
+      counter.textContent = `${i + 1} / ${slides.length}`;
+      notes.textContent = slides[i].dataset.notes || "";
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (["ArrowRight", " ", "PageDown"].includes(e.key)) { e.preventDefault(); show(i + 1); }
+      if (["ArrowLeft", "PageUp"].includes(e.key)) { e.preventDefault(); show(i - 1); }
+      if (e.key === "Home") show(0);
+      if (e.key === "End") show(slides.length - 1);
+      if (e.key === "n" || e.key === "N") {
+        notesOn = !notesOn;
+        notes.classList.toggle("on", notesOn);
+      }
+      if (e.key === "f" || e.key === "F") {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+        else document.exitFullscreen?.();
+      }
+    });
+
+    show(0);
+  </script>
+</body>
+</html>

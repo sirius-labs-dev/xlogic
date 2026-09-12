@@ -1,0 +1,10 @@
+.env
+logs/
+__pycache__/
+*.pyc
+.Python
+.venv/
+venv/
+.pytest_cache/
+.gh_token
+.cursor/

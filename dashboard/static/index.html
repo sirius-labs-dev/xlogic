@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>XLogic — OKX TR agent console</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #000000;
+      --bg2: #121212;
+      --panel: #1a1a1a;
+      --panel-hover: #212121;
+      --line: #2a2a2a;
+      --ink: #fafafa;
+      --muted: #848e9c;
+      --soft: #d9d9d9;
+      --up: #25a750;
+      --down: #ca3f64;
+      --warn: #f0b429;
+      --hold: #848e9c;
+      --cta: #ffffff;
+      --radius: 12px;
+      --radius-pill: 100px;
+      --font: "Plus Jakarta Sans", -apple-system, system-ui, "Helvetica Neue", Arial, sans-serif;
+      --mono: "IBM Plex Mono", ui-monospace, monospace;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font);
+      -webkit-font-smoothing: antialiased;
+    }
+    body { padding: 0 0 40px; }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px clamp(16px, 3vw, 32px);
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(0,0,0,.88);
+      backdrop-filter: blur(12px);
+    }
+    .nav-left { display: flex; align-items: center; gap: 18px; min-width: 0; }
+    .logo {
+      font-weight: 800;
+      font-size: 22px;
+      letter-spacing: -0.04em;
+      color: var(--ink);
+      text-decoration: none;
+      line-height: 1;
+    }
+    .nav-sep { width: 1px; height: 18px; background: var(--line); }
+    .nav-meta {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .nav-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: var(--radius);
+      background: var(--panel);
+      color: var(--soft);
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge.live {
+      background: color-mix(in srgb, var(--up) 14%, var(--panel));
+      color: var(--up);
+    }
+    .badge.dead {
+      background: color-mix(in srgb, var(--down) 14%, var(--panel));
+      color: var(--down);
+    }
+    .badge.cta {
+      background: var(--cta);
+      color: #000;
+      border-radius: var(--radius-pill);
+      padding: 7px 14px;
+    }
+    .badge.sc-up {
+      background: color-mix(in srgb, var(--up) 18%, var(--panel));
+      color: var(--up);
+    }
+    .badge.sc-down {
+      background: color-mix(in srgb, var(--down) 18%, var(--panel));
+      color: var(--down);
+    }
+    .badge.sc-warn {
+      background: color-mix(in srgb, var(--warn) 18%, var(--panel));
+      color: var(--warn);
+    }
+    .badge.sc-muted {
+      background: var(--bg2);
+      color: var(--soft);
+    }
+    .pulse {
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--up);
+    }
+    .pulse.off { background: var(--down); }
+
+    .fill-toast {
+      position: fixed;
+      top: 64px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-12px);
+      z-index: 40;
+      background: var(--up);
+      color: #000;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 12px 20px;
+      border-radius: var(--radius-pill);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s, transform .25s;
+      box-shadow: 0 12px 40px rgba(37, 167, 80, .35);
+      max-width: min(92vw, 420px);
+      text-align: center;
+    }
+    .fill-toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    body.fill-flash .panel.fills-panel {
+      border-color: color-mix(in srgb, var(--up) 55%, var(--line));
+      animation: fillBorder 1.2s ease;
+    }
+    @keyframes fillBorder {
+      0% { background: color-mix(in srgb, var(--up) 12%, var(--panel)); }
+      100% { background: var(--panel); }
+    }
+
+    .wrap {
+      padding: 28px clamp(16px, 3vw, 32px) 0;
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 28px;
+      align-items: end;
+      margin-bottom: 22px;
+    }
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr; }
+    }
+    .brand {
+      margin: 0;
+      font-weight: 800;
+      font-size: clamp(48px, 9vw, 80px);
+      line-height: .92;
+      letter-spacing: -0.05em;
+      color: var(--ink);
+    }
+    .tagline {
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+      max-width: 42ch;
+      line-height: 1.5;
+    }
+    .status-rail { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+    .chip {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      padding: 12px 14px;
+      border-radius: var(--radius);
+      min-width: 104px;
+      transition: background .2s;
+    }
+    .chip:hover { background: var(--panel-hover); }
+    .chip .k {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    .chip .v {
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+    }
+    .chip.live .v { color: var(--up); }
+    .chip.dead .v { color: var(--down); }
+    .chip.pnl-up .v { color: var(--up); }
+    .chip.pnl-down .v { color: var(--down); }
+
+    .pipeline {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    @media (max-width: 800px) {
+      .pipeline { grid-template-columns: 1fr 1fr; }
+    }
+    .stage {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px 14px 14px;
+      min-height: 100px;
+      position: relative;
+      overflow: hidden;
+    }
+    .stage::before {
+      content: "";
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      background: var(--muted);
+      opacity: .45;
+    }
+    .stage.pass::before { background: var(--up); opacity: 1; }
+    .stage.hold::before { background: var(--hold); opacity: 1; }
+    .stage.halt::before,
+    .stage.fail::before { background: var(--down); opacity: 1; }
+    .stage .lab { font-weight: 700; font-size: 13px; margin-bottom: 8px; }
+    .stage .det { color: var(--muted); font-size: 12px; line-height: 1.45; word-break: break-word; }
+    .stage.pass { border-color: color-mix(in srgb, var(--up) 28%, var(--line)); }
+    .stage.halt, .stage.fail {
+      border-color: color-mix(in srgb, var(--down) 35%, var(--line));
+      animation: haltFlash .85s ease-out;
+    }
+    @keyframes haltFlash {
+      0% { background: color-mix(in srgb, var(--down) 12%, var(--panel)); }
+      100% { background: var(--panel); }
+    }
+
+    .ux-row {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    @media (max-width: 1100px) {
+      .ux-row { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 700px) {
+      .ux-row { grid-template-columns: 1fr; }
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.35fr .9fr;
+      gap: 12px;
+    }
+    @media (max-width: 960px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 18px 18px 14px;
+    }
+    .panel h2 {
+      font-size: 14px;
+      font-weight: 700;
+      margin: 0 0 14px;
+      color: var(--ink);
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .panel h2 .sub {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--muted);
+    }
+
+    .story-head {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .story-reason {
+      color: var(--soft);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .story-meta {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .scenario-hero {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .scenario-pill {
+      font-weight: 800;
+      font-size: 18px;
+      letter-spacing: 0.04em;
+      padding: 8px 16px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--line);
+    }
+    .scenario-pill.up {
+      color: #000;
+      background: var(--up);
+      border-color: var(--up);
+    }
+    .scenario-pill.down {
+      color: #fff;
+      background: var(--down);
+      border-color: var(--down);
+    }
+    .scenario-pill.warn {
+      color: #000;
+      background: var(--warn);
+      border-color: var(--warn);
+    }
+    .scenario-pill.muted {
+      color: var(--soft);
+      background: var(--bg2);
+    }
+    .scenario-blurb {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+      flex: 1;
+      min-width: 160px;
+    }
+    .fc-stat {
+      display: flex;
+      gap: 16px;
+      margin: 10px 0;
+      flex-wrap: wrap;
+    }
+    .fc-stat div {
+      background: var(--bg2);
+      border-radius: 10px;
+      padding: 10px 12px;
+      min-width: 88px;
+    }
+    .fc-stat .k { display: block; color: var(--muted); font-size: 11px; margin-bottom: 4px; }
+    .fc-stat .v { font-weight: 700; font-size: 18px; font-variant-numeric: tabular-nums; }
+    .fc-pitch {
+      font-size: 12px;
+      color: var(--soft);
+      line-height: 1.45;
+      margin-top: 8px;
+    }
+
+    .pos-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 13px;
+    }
+    .pos-row:last-child { border-bottom: none; }
+    .pos-row .ccy { font-weight: 700; }
+    .pos-row .amt { font-family: var(--mono); font-size: 12px; color: var(--soft); text-align: right; }
+    .pos-row .hint { color: var(--muted); font-size: 11px; margin-top: 4px; }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 110px 1fr 36px;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 12px;
+    }
+    .bar-row .lab {
+      color: var(--muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+    .bar-track {
+      height: 8px;
+      background: var(--bg2);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: var(--muted);
+      min-width: 2px;
+    }
+    .bar-fill.gate { background: var(--down); }
+    .bar-fill.ok { background: var(--up); }
+    .bar-fill.skip { background: #3a3a3a; }
+    .bar-n { font-family: var(--mono); font-size: 11px; color: var(--soft); text-align: right; }
+
+    .risk-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .risk-item {
+      background: var(--bg2);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+    .risk-item .k { display: block; color: var(--muted); font-size: 11px; margin-bottom: 4px; }
+    .risk-item .v { font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums; }
+    .risk-item.warn .v { color: var(--warn); }
+    .risk-item.bad .v { color: var(--down); }
+
+    .spark-wrap { position: relative; height: 72px; }
+    .spark-wrap svg { width: 100%; height: 100%; display: block; }
+    .spark-meta {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--muted);
+      font-family: var(--mono);
+    }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th {
+      text-align: left;
+      color: var(--muted);
+      font-weight: 500;
+      font-size: 11px;
+      padding: 0 8px 10px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    td {
+      padding: 12px 8px 12px 0;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      color: var(--soft);
+    }
+    tr:last-child td { border-bottom: none; }
+    tr.new td { animation: rowIn .4s ease; }
+    @keyframes rowIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: none; }
+    }
+    .act {
+      font-weight: 700;
+      font-size: 12px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      display: inline-block;
+    }
+    .act.BUY { color: var(--up); background: color-mix(in srgb, var(--up) 14%, transparent); }
+    .act.SELL { color: var(--down); background: color-mix(in srgb, var(--down) 14%, transparent); }
+    .act.HOLD { color: var(--soft); background: color-mix(in srgb, var(--soft) 8%, transparent); }
+    .src {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 6px;
+      background: var(--bg2);
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .src.llm { color: var(--ink); background: #2a2a2a; }
+    .src.rules, .src.rules_fallback { color: var(--warn); }
+
+    .muted { color: var(--muted); }
+    .mono {
+      font-family: var(--mono);
+      font-variant-numeric: tabular-nums;
+      font-size: 12px;
+    }
+    .fill {
+      border: 1px solid color-mix(in srgb, var(--up) 28%, var(--line));
+      background: color-mix(in srgb, var(--up) 8%, var(--panel));
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      font-size: 13px;
+    }
+    .fill strong { color: var(--up); font-weight: 700; }
+    .log {
+      font-family: var(--mono);
+      font-size: 11px;
+      line-height: 1.55;
+      color: var(--muted);
+      max-height: 220px;
+      overflow: auto;
+      white-space: pre-wrap;
+    }
+    .pairs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .pair {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      background: var(--bg2);
+    }
+    .pair .name { font-weight: 700; font-size: 13px; margin-bottom: 6px; }
+    .footer {
+      margin-top: 20px;
+      color: var(--muted);
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .footer a { color: var(--soft); text-decoration: none; }
+    .footer a:hover { color: var(--ink); }
+  </style>
+</head>
+<body>
+  <div class="fill-toast" id="fillToast" role="status" aria-live="polite"></div>
+
+  <nav class="nav" aria-label="XLogic">
+    <div class="nav-left">
+      <a class="logo" href="/">XLogic</a>
+      <span class="nav-sep" aria-hidden="true"></span>
+      <span class="nav-meta">Agent console · OKX TR spot</span>
+    </div>
+    <div class="nav-right" id="navBadges"></div>
+  </nav>
+
+  <div class="wrap">
+    <header class="hero">
+      <div>
+        <h1 class="brand">XLogic</h1>
+        <p class="tagline" id="tagline">Fail-closed spot agent — every order through the gate</p>
+      </div>
+      <div class="status-rail" id="chips"></div>
+    </header>
+
+    <section class="pipeline" id="pipeline" aria-label="Agent pipeline"></section>
+
+    <div class="ux-row" style="grid-template-columns: 1.2fr 1fr 1fr 1fr;">
+      <section class="panel">
+        <h2>Senaryo <span class="sub">canlı cycle</span></h2>
+        <div id="scenarioBox"><p class="muted">—</p></div>
+        <h2 style="margin-top:16px">Son karar <span class="sub" id="storyCycle"></span></h2>
+        <div id="story"><p class="muted">Henüz karar yok.</p></div>
+      </section>
+      <section class="panel">
+        <h2>Fail-closed</h2>
+        <div id="failClosed"><p class="muted">—</p></div>
+      </section>
+      <section class="panel">
+        <h2>Pozisyon / bakiye</h2>
+        <div id="positions"><p class="muted">Bakiye yükleniyor…</p></div>
+      </section>
+      <section class="panel">
+        <h2>Gate özeti <span class="sub" id="gateSub"></span></h2>
+        <div id="gates"><p class="muted">—</p></div>
+      </section>
+    </div>
+
+    <div class="ux-row" style="grid-template-columns: 1fr 1.2fr;">
+      <section class="panel">
+        <h2>Risk limitleri</h2>
+        <div class="risk-grid" id="risk"></div>
+      </section>
+      <section class="panel">
+        <h2>Equity <span class="sub">gün içi</span></h2>
+        <div class="spark-wrap" id="spark"></div>
+        <div class="spark-meta">
+          <span id="sparkLo">—</span>
+          <span id="sparkHi">—</span>
+        </div>
+      </section>
+    </div>
+
+    <div class="grid">
+      <section class="panel">
+        <h2>Decision feed</h2>
+        <div class="pairs" id="pairs"></div>
+        <table>
+          <thead>
+            <tr>
+              <th>Cycle</th>
+              <th>Action</th>
+              <th>Gate</th>
+              <th>Order</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody id="feed"></tbody>
+        </table>
+      </section>
+
+      <aside>
+        <section class="panel fills-panel" style="margin-bottom:12px">
+          <h2>Fills</h2>
+          <div id="fills"><p class="muted">Henüz fill yok.</p></div>
+        </section>
+        <section class="panel">
+          <h2>Live log</h2>
+          <div class="log" id="log"></div>
+        </section>
+      </aside>
+    </div>
+
+    <div class="footer">
+      <span>Powered by <a href="https://www.tr.okx.com/" target="_blank" rel="noopener">OKX TR</a> · observe → decide → gate → order</span>
+      <span id="clock" class="mono"></span>
+    </div>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    let lastCycle = null;
+    let seenFillId = null;
+    let fillInit = false;
+
+    function fmt(n, d = 2) {
+      if (n == null || Number.isNaN(Number(n))) return "—";
+      return Number(n).toLocaleString("en-US", { maximumFractionDigits: d, minimumFractionDigits: d });
+    }
+
+    function beep() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.type = "sine";
+        o.frequency.value = 880;
+        g.gain.value = 0.04;
+        o.connect(g);
+        g.connect(ctx.destination);
+        o.start();
+        g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.35);
+        o.stop(ctx.currentTime + 0.4);
+        setTimeout(() => ctx.close(), 500);
+      } catch (_) { /* ignore */ }
+    }
+
+    function toastFill(f) {
+      if (!f) return;
+      const label = `${f.action || "FILL"} ${(f.instId || "").replace("-USDT", "")} · ${fmt(f.size, 5)} @ ${fmt(f.entry_px, 2)}`;
+      const el = $("fillToast");
+      el.textContent = label;
+      el.classList.add("show");
+      document.body.classList.add("fill-flash");
+      beep();
+      setTimeout(() => el.classList.remove("show"), 4200);
+      setTimeout(() => document.body.classList.remove("fill-flash"), 1400);
+    }
+
+    function chips(s) {
+      const alive = s.agent_alive;
+      const pnl = s.pnl_pct;
+      const pnlCls = pnl == null ? "" : (pnl >= 0 ? "pnl-up" : "pnl-down");
+      const kill = s.state.kill_switch;
+      const sc = s.scenario || {};
+      const tone = sc.tone === "up" ? "sc-up" : sc.tone === "down" ? "sc-down" : sc.tone === "warn" ? "sc-warn" : "sc-muted";
+      $("navBadges").innerHTML = `
+        <span class="badge ${alive ? "live" : "dead"}">
+          <span class="pulse ${alive ? "" : "off"}"></span>
+          ${alive ? "LIVE" : "DOWN"}
+        </span>
+        <span class="badge ${tone}">${sc.label || "—"}</span>
+        <span class="badge">${s.mode || "—"}</span>
+        <span class="badge cta">#${s.state.cycle ?? "—"}</span>
+      `;
+      $("chips").innerHTML = `
+        <div class="chip ${alive ? "live" : "dead"}">
+          <span class="k">Agent</span>
+          <span class="v">${alive ? "LIVE" : "DOWN"}</span>
+        </div>
+        <div class="chip">
+          <span class="k">Mode</span>
+          <span class="v">${s.mode || "—"}</span>
+        </div>
+        <div class="chip">
+          <span class="k">Cycle</span>
+          <span class="v mono">#${s.state.cycle ?? "—"}</span>
+        </div>
+        <div class="chip">
+          <span class="k">Equity</span>
+          <span class="v mono">$${fmt(s.equity)}</span>
+        </div>
+        <div class="chip ${pnlCls}">
+          <span class="k">Day PnL</span>
+          <span class="v mono">${pnl == null ? "—" : (pnl >= 0 ? "+" : "") + fmt(pnl, 2) + "%"}</span>
+        </div>
+        <div class="chip ${kill ? "dead" : ""}">
+          <span class="k">Kill</span>
+          <span class="v">${kill ? "ON" : "off"}</span>
+        </div>
+      `;
+    }
+
+    function pipeline(stages) {
+      $("pipeline").innerHTML = stages.map((st) => `
+        <div class="stage ${st.status}">
+          <div class="lab">${st.label}</div>
+          <div class="det">${st.detail || "—"}</div>
+        </div>
+      `).join("");
+    }
+
+    function scenario(sc) {
+      if (!sc) {
+        $("scenarioBox").innerHTML = `<p class="muted">—</p>`;
+        return;
+      }
+      const tone = sc.tone || "muted";
+      $("scenarioBox").innerHTML = `
+        <div class="scenario-hero">
+          <span class="scenario-pill ${tone}">${sc.label || "—"}</span>
+          <span class="scenario-blurb">${sc.blurb || ""}</span>
+        </div>
+      `;
+    }
+
+    function failClosed(fc) {
+      if (!fc) {
+        $("failClosed").innerHTML = `<p class="muted">—</p>`;
+        return;
+      }
+      const last = fc.last;
+      const lastLine = last
+        ? `#${last.cycle ?? "—"} · ${last.source} · ${(last.reason || last.action || "").slice(0, 80)}`
+        : "Henüz fallback yok (LLM ayakta).";
+      $("failClosed").innerHTML = `
+        <div class="fc-stat">
+          <div><span class="k">rules_fallback</span><span class="v">${fc.fallback_count ?? 0}</span></div>
+          <div><span class="k">llm_ok=false</span><span class="v">${fc.llm_fail_count ?? 0}</span></div>
+        </div>
+        <div class="muted" style="font-size:12px">${lastLine}</div>
+        <div class="fc-pitch">${fc.pitch || ""}</div>
+      `;
+    }
+
+    function story(st) {
+      if (!st) {
+        $("story").innerHTML = `<p class="muted">Henüz karar yok.</p>`;
+        $("storyCycle").textContent = "";
+        return;
+      }
+      $("storyCycle").textContent = st.cycle != null ? `#${st.cycle}` : "";
+      const conf = st.confidence != null ? `${Math.round(Number(st.confidence) * 100)}%` : "—";
+      const gateTone = st.gate_allowed ? "pass" : (st.gate_reason === "SKIPPED" ? "" : "halt");
+      $("story").innerHTML = `
+        <div class="story-head">
+          <span class="act ${st.action}">${st.action}</span>
+          <span class="src ${st.source}">${st.source}</span>
+          ${st.instId ? `<span class="mono">${st.instId}</span>` : ""}
+        </div>
+        <div class="story-reason">${(st.reason || "—").slice(0, 280)}</div>
+        <div class="story-meta">
+          <span>confidence <strong class="mono" style="color:var(--ink)">${conf}</strong></span>
+          <span>gate <strong class="mono" style="color:${gateTone === "halt" ? "var(--down)" : "var(--ink)"}">${st.gate_reason || "—"}</strong></span>
+          <span>order <strong class="mono">${st.order_sent ? (st.order_ok ? (st.clOrdId || "ok") : "FAIL") : "no send"}</strong></span>
+        </div>
+      `;
+    }
+
+    function positions(list) {
+      if (!list || !list.length) {
+        $("positions").innerHTML = `<p class="muted">Bakiye yok / OKX yanıt vermedi.</p>`;
+        return;
+      }
+      $("positions").innerHTML = list.map((p) => {
+        const fill = p.last_fill;
+        const hint = fill
+          ? `son fill ${fill.action} @ ${fmt(fill.entry_px, 2)}`
+          : (p.is_quote ? "quote" : "");
+        return `<div class="pos-row">
+          <div>
+            <div class="ccy">${p.ccy}</div>
+            ${hint ? `<div class="hint">${hint}</div>` : ""}
+          </div>
+          <div class="amt">
+            ${fmt(p.eq, p.is_quote ? 2 : 5)}
+            ${p.eqUsd != null ? `<div class="hint">≈ $${fmt(p.eqUsd, 2)}</div>` : ""}
+          </div>
+        </div>`;
+      }).join("");
+    }
+
+    function gates(gs) {
+      if (!gs || !gs.ranked || !gs.ranked.length) {
+        $("gates").innerHTML = `<p class="muted">—</p>`;
+        $("gateSub").textContent = "";
+        return;
+      }
+      $("gateSub").textContent = `${gs.gated_n} gated · ${gs.total} cycle`;
+      const maxN = Math.max(...gs.ranked.map((r) => r.n), 1);
+      $("gates").innerHTML = gs.ranked.slice(0, 6).map((r) => {
+        const cls = r.reason === "OK" ? "ok" : (r.reason === "SKIPPED" ? "skip" : "gate");
+        const pct = Math.max(4, (r.n / maxN) * 100);
+        return `<div class="bar-row">
+          <div class="lab" title="${r.reason}">${r.reason}</div>
+          <div class="bar-track"><div class="bar-fill ${cls}" style="width:${pct}%"></div></div>
+          <div class="bar-n">${r.n}</div>
+        </div>`;
+      }).join("");
+    }
+
+    function risk(r) {
+      if (!r) {
+        $("risk").innerHTML = "";
+        return;
+      }
+      const lossLimit = r.daily_loss_limit_pct;
+      const day = r.day_pnl_pct;
+      let dayCls = "";
+      if (day != null && lossLimit != null && day <= -lossLimit * 0.7) dayCls = "warn";
+      if (r.kill_switch) dayCls = "bad";
+      const rateCls = r.orders_this_hour >= r.max_orders_per_hour ? "bad" : "";
+      $("risk").innerHTML = `
+        <div class="risk-item"><span class="k">Risk / trade</span><span class="v">${fmt(r.max_risk_per_trade_pct, 2)}%</span></div>
+        <div class="risk-item"><span class="k">Max position</span><span class="v">${fmt(r.max_position_pct, 0)}%</span></div>
+        <div class="risk-item"><span class="k">Max exposure</span><span class="v">${fmt(r.max_exposure_pct, 0)}%</span></div>
+        <div class="risk-item ${dayCls}"><span class="k">Daily loss kill</span><span class="v">${fmt(lossLimit, 1)}% · day ${day == null ? "—" : fmt(day, 2) + "%"}</span></div>
+        <div class="risk-item ${rateCls}"><span class="k">Orders / hour</span><span class="v">${r.orders_this_hour}/${r.max_orders_per_hour}</span></div>
+        <div class="risk-item"><span class="k">Cutoff</span><span class="v">${r.cutoff_new_buys} / ${r.hard_stop}</span></div>
+      `;
+    }
+
+    function spark(series) {
+      if (!series || series.length < 2) {
+        $("spark").innerHTML = `<p class="muted" style="padding-top:20px">Henüz equity serisi yok.</p>`;
+        $("sparkLo").textContent = "—";
+        $("sparkHi").textContent = "—";
+        return;
+      }
+      const vals = series.map((p) => Number(p.equity));
+      const lo = Math.min(...vals);
+      const hi = Math.max(...vals);
+      const pad = (hi - lo) * 0.08 || 0.01;
+      const y0 = lo - pad;
+      const y1 = hi + pad;
+      const w = 320;
+      const h = 72;
+      const pts = vals.map((v, i) => {
+        const x = (i / (vals.length - 1)) * w;
+        const y = h - ((v - y0) / (y1 - y0)) * h;
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+      }).join(" ");
+      const up = vals[vals.length - 1] >= vals[0];
+      const stroke = up ? "#25a750" : "#ca3f64";
+      $("spark").innerHTML = `
+        <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">
+          <polyline fill="none" stroke="${stroke}" stroke-width="2" points="${pts}" />
+        </svg>`;
+      $("sparkLo").textContent = `lo $${fmt(lo, 2)}`;
+      $("sparkHi").textContent = `hi $${fmt(hi, 2)} · n=${vals.length}`;
+    }
+
+    function pairs(last) {
+      const sigs = (last && last.signals_summary) || {};
+      const keys = Object.keys(sigs);
+      if (!keys.length) {
+        $("pairs").innerHTML = "";
+        return;
+      }
+      $("pairs").innerHTML = keys.map((k) => {
+        const v = sigs[k] || {};
+        return `<div class="pair">
+          <div class="name">${k}</div>
+          <div class="mono">${fmt(v.last, 2)} · ${v.trend || "—"}</div>
+          <div class="muted" style="margin-top:6px;font-size:11px">
+            spread ${fmt(v.spread_bps, 2)} bps
+            · entry ${v.entry_candidate ? "yes" : "no"}
+            · exit ${v.exit_signal ? "yes" : "no"}
+          </div>
+        </div>`;
+      }).join("");
+    }
+
+    function feed(rows) {
+      const isNew = lastCycle != null && rows[0] && rows[0].cycle !== lastCycle;
+      if (rows[0]) lastCycle = rows[0].cycle;
+      $("feed").innerHTML = rows.slice(0, 16).map((r, i) => {
+        const llm = r.llm || {};
+        const gate = r.gate || {};
+        const order = r.order || {};
+        const act = llm.action || "HOLD";
+        const ord = order.sent
+          ? (order.ok ? (order.clOrdId || "ok") : "FAIL")
+          : "—";
+        const cls = i === 0 && isNew ? "new" : "";
+        return `<tr class="${cls}">
+          <td class="mono">#${r.cycle ?? "—"}</td>
+          <td><span class="act ${act}">${act}</span>
+            <div class="muted" style="margin-top:4px;font-size:12px">${(llm.reason || "").slice(0, 42)}</div>
+          </td>
+          <td class="mono">${gate.reason || "—"}</td>
+          <td class="mono" style="max-width:140px;overflow:hidden;text-overflow:ellipsis">${ord}</td>
+          <td class="muted mono">${(r.ts || "").replace("T", " ").slice(11, 19)}</td>
+        </tr>`;
+      }).join("") || `<tr><td colspan="5" class="muted">Henüz karar yok.</td></tr>`;
+    }
+
+    function fills(list) {
+      if (!list || !list.length) {
+        $("fills").innerHTML = `<p class="muted">Henüz fill yok.</p>`;
+        return;
+      }
+      $("fills").innerHTML = list.map((r) => {
+        const llm = r.llm || {};
+        const gate = r.gate || {};
+        const order = r.order || {};
+        return `<div class="fill">
+          <strong>${llm.action || "?"} ${(llm.instId || "").replace("-USDT","")}</strong>
+          <div class="mono" style="margin-top:6px">sz ${fmt(gate.size, 5)} @ ${fmt(gate.entry_px, 2)}</div>
+          <div class="muted" style="margin-top:4px">${order.clOrdId || ""}</div>
+        </div>`;
+      }).join("");
+    }
+
+    function watchFill(latest) {
+      const id = latest && (latest.clOrdId || `${latest.cycle}:${latest.ts}`);
+      if (!id) return;
+      if (!fillInit) {
+        seenFillId = id;
+        fillInit = true;
+        return;
+      }
+      if (id !== seenFillId) {
+        seenFillId = id;
+        toastFill(latest);
+      }
+    }
+
+    async function tick() {
+      try {
+        const res = await fetch("/api/snapshot", { cache: "no-store" });
+        const s = await res.json();
+        $("tagline").textContent = s.tagline || "";
+        chips(s);
+        pipeline(s.pipeline || []);
+        scenario(s.scenario);
+        failClosed(s.fail_closed);
+        story(s.story);
+        positions(s.positions || []);
+        gates(s.gate_stats);
+        risk(s.risk);
+        spark(s.equity_series || []);
+        pairs(s.last);
+        feed(s.recent || []);
+        fills(s.fills || []);
+        watchFill(s.latest_fill);
+        $("log").textContent = (s.live_lines || []).join("\n");
+        $("clock").textContent = new Date().toLocaleTimeString("tr-TR");
+      } catch (e) {
+        $("chips").innerHTML = `<div class="chip dead"><span class="k">API</span><span class="v">offline</span></div>`;
+        $("navBadges").innerHTML = `<span class="badge dead">API offline</span>`;
+      }
+    }
+
+    tick();
+    setInterval(tick, 4000);
+  </script>
+</body>
+</html>
