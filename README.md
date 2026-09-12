@@ -10,7 +10,7 @@ Fail-closed otonom spot ajanı: her emir **risk kapısından** geçmeden borsaya
 
 | Kriter | Kanıt |
 |--------|--------|
-| **Functional** | Canlı OKX TR spot loop · 3 fill · `clOrdId` prefix `agt…` |
+| **Functional** | Canlı OKX TR spot loop · 4 fill · `clOrdId` prefix `agt…` |
 | **UX** | XLogic live console (`dashboard/`) · pitch deck |
 | **ATK / CLI** | Tüm OKX çağrıları `okx --json` subprocess · imza yok · `docs/okx-tools.json` |
 | **Reliability** | Fail-closed: LLM fail → `rules_fallback` / HOLD · gate red → **GATED** (emir yok) · 40 pytest |
@@ -21,8 +21,9 @@ Fail-closed otonom spot ajanı: her emir **risk kapısından** geçmeden borsaya
 - **BUY #1** ETH-USDT ~0.00355 @ ~2534 · `agt1789207399030o7tk`
 - **SELL** ~0.003546 @ ~2544.6 · `agt1789221591956oth1`
 - **BUY #2** + ilişik SL/TP · `agt1789221622666pc19`
-- Day start **$30** → ~$30.01 · gate frenleri: `BELOW_MIN_SIZE`, `OVER_POSITION`, `RATE_LIMIT`
-- Karar: Anthropic LLM (`--decision auto`) + `rules_fallback`
+- **BUY #3** ~0.003546 @ ~2534 · `agt1789227465820421u` (LLM)
+- Day start **$30** → ~$29.95 · gate frenleri: `BELOW_MIN_SIZE`, `OVER_POSITION`, `RATE_LIMIT`
+- ~287 cycle · Karar: Anthropic LLM (`--decision auto`) + `rules_fallback`
 
 ## Mimari
 

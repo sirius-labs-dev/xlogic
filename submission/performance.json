@@ -1,39 +1,39 @@
 {
-  "generated_at": "2026-09-12T17:00:51+03:00",
-  "cycles": 199,
-  "state_cycle": 198,
+  "generated_at": "2026-09-12T18:50:39+03:00",
+  "cycles": 287,
+  "state_cycle": 286,
   "kill_switch": false,
   "day_start_equity": 30.0,
-  "last_equity": 30.01093315,
-  "pnl_abs": 0.010933149999999614,
-  "pnl_pct": 0.036443833333332044,
+  "last_equity": 29.95055891,
+  "pnl_abs": -0.04944108999999841,
+  "pnl_pct": -0.16480363333332804,
   "modes": {
     "DRY": 11,
-    "LIVE": 188
+    "LIVE": 276
   },
   "actions": {
-    "HOLD": 99,
-    "BUY": 99,
+    "HOLD": 160,
+    "BUY": 126,
     "SELL": 1
   },
   "decision_sources": {
     "?": 2,
     "rules": 97,
-    "llm": 95,
+    "llm": 183,
     "rules_fallback": 4,
     "demo_exit": 1
   },
   "gate_reasons": {
-    "SKIPPED": 99,
-    "OK": 10,
+    "SKIPPED": 160,
+    "OK": 11,
     "RATE_LIMIT": 3,
     "DAILY_LOSS_KILL": 1,
-    "BELOW_MIN_SIZE": 52,
+    "BELOW_MIN_SIZE": 78,
     "OVER_POSITION": 34
   },
-  "llm_ok_count": 96,
-  "fill_count": 3,
-  "braked_count": 90,
+  "llm_ok_count": 184,
+  "fill_count": 4,
+  "braked_count": 116,
   "fills": [
     {
       "ts": "2026-09-12T13:03:10+03:00",
@@ -73,9 +73,22 @@
       "clOrdId": "agt1789221622666pc19",
       "ordId": "3916447257179541504",
       "decision_source": "llm"
+    },
+    {
+      "ts": "2026-09-12T18:37:33+03:00",
+      "cycle": 276,
+      "action": "BUY",
+      "instId": "ETH-USDT",
+      "size": 0.003546,
+      "entry_px": 2534.18,
+      "stop_px": 2525.3,
+      "take_profit_px": 2547.5,
+      "clOrdId": "agt1789227465820421u",
+      "ordId": "3916643310088572928",
+      "decision_source": "llm"
     }
   ],
-  "equity_points": 212,
+  "equity_points": 300,
   "first_ts": "2026-09-12T05:24:37+03:00",
-  "last_ts": "2026-09-12T17:00:04+03:00"
+  "last_ts": "2026-09-12T18:49:53+03:00"
 }

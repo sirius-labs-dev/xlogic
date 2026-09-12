@@ -44,7 +44,8 @@ ATK entegrasyonu: tüm OKX çağrıları `/opt/homebrew/bin/okx --json` subproce
 - **Fill #1:** BUY ETH-USDT ~0.00355 @ ~2534 · `clOrdId=agt1789207399030o7tk`
 - **Fill #2 (exit):** SELL ETH-USDT ~0.003546 @ ~2544.6 · `agt1789221591956oth1` (OCO iptal → risk_gate → spot)
 - **Fill #3 (re-entry):** BUY ETH-USDT ~0.003537 @ ~2544 · `agt1789221622666pc19` + ilişik SL/TP
-- **Kasa:** day start 30 USDT → ~30.00 totalEq
+- **Fill #4:** BUY ETH-USDT ~0.003546 @ ~2534 · `agt1789227465820421u` (LLM, cycle 276)
+- **Kasa:** day start 30 USDT → ~29.95 totalEq (~287 cycle)
 - **LLM:** `--decision auto` + journal’da `llm_ok` / `rules_fallback`
 - **Gate örneği:** BUY + dolu pozisyon → `OVER_POSITION` / `BELOW_MIN_SIZE` (fren)
 
